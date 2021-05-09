@@ -58,7 +58,7 @@ int main() {
 	while (q--) {
 		int ind, val; std::cin >> ind >> val; ind--;
 		seg.set(ind, val);
-		std::cout << seg.v[0].sum << "\n";
+		std::cout << std::max(0LL, seg.v[0].sum) << "\n";
 	}
 	
 }
