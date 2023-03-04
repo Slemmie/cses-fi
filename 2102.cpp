@@ -1,109 +1,69 @@
 #include <bits/stdc++.h>
 
-template <int mod> int pw(int x, int p) {
-	int r = 1;
-	while (p) {
-		if (p & 1) {
-			r = ((long long)r * x) % mod;
+struct SA {
+	struct State {
+		int length;
+		int link;
+		int next[26];
+		State(int _length, int _link) :
+		length(_length),
+		link(_link)
+		{
+			memset(next, -1, sizeof(next));
 		}
-		x = ((long long)x * x) % mod;
-		p >>= 1;
-	}
-	return r;
-}
-
-template <int base, int mod> struct Rolling {
-	
-	std::vector <int> v;
-	static inline std::vector <int> inv;
-	
-	Rolling(const std::string& s) {
-		v.resize(s.size(), 1);
-		if (inv.size() < s.size()) {
-			inv.resize(s.size(), -1);
+	};
+	std::vector <State> states;
+	int size;
+	int last;
+	SA() : states(1, State(0, -1)), size(1), last(0) { }
+	void push(char c) {
+		int cur = size;
+		states.resize(++size, State(states[last].length + 1, -1));
+		int p = last;
+		while (p != -1 && states[p].next[c - 'a'] == -1) {
+			states[p].next[c - 'a'] = cur;
+			p = states[p].link;
 		}
-		int val = 1;
-		for (int i = 0; i < (int)s.size(); i++) {
-			v[i] = ((long long)val * (s[i] - 'a' + 1) + (i ? v[i - 1] : 0)) % mod;
-			if (inv[i] == -1) {
-				inv[i] = pw <mod> (val, mod - 2);
-			}
-			val = ((long long)val * base) % mod;
-		}
-	}
-	
-	int query(int l, int r) {
-		return (long long)inv[l] * (v[r] - (l ? v[l - 1] : 0) + mod) % mod;
-	}
-	
-};
-
-struct Node {
-	std::vector <Node*> child = std::vector <Node*> (26, nullptr);
-	~Node() {
-		for (Node*& c : child) {
-			if (c) {
-				delete(c);
+		if (p == -1) {
+			states[cur].link = 0;
+		} else {
+			int q = states[p].next[c - 'a'];
+			if (states[p].length + 1 == states[q].length) {
+				states[cur].link = q;
+			} else {
+				int clone = size;
+				states.resize(++size, State(states[p].length + 1, states[q].link));
+				memcpy(states[clone].next, states[q].next, sizeof(State::next));
+				while (p != -1 && states[p].next[c - 'a'] == q) {
+					states[p].next[c - 'a'] = clone;
+					p = states[p].link;
+				}
+				states[q].link = states[cur].link = clone;
 			}
 		}
+		last = cur;
 	}
-	inline void add(int i, const std::string& s) {
-		if (i == (int)s.size()) {
-			return;
+	bool exists(const std::string& pattern) {
+		int node = 0;
+		int index = 0;
+		while (index < (int) pattern.length() && states[node].next[pattern[index] - 'a'] != -1) {
+			node = states[node].next[pattern[index] - 'a'];
+			index++;
 		}
-		if (!child[s[i] - 'a']) {
-			child[s[i] - 'a'] = new Node();
-		}
-		child[s[i] - 'a']->add(i + 1, s);
-	}
-	inline bool has(int i, const std::string& s) {
-		if (i == (int)s.size()) {
-			return true;
-		}
-		if (!child[s[i] - 'a']) {
-			return false;
-		}
-		return child[s[i] - 'a']->has(i + 1, s);
+		return index == (int) pattern.size();
 	}
 };
 
 int main() {
 	std::ios::sync_with_stdio(0); std::cin.tie(0);
-	
 	std::string s; std::cin >> s;
-	Rolling <69, int(1e9) + 7> rol(s);
-	int block = sqrt(s.size()) / 15;
-	Node trie;
-	for (int i = 0; i < (int)s.size(); i++) {
-		std::string t;
-		for (int j = i; j <= i + block + 1 && j < (int)s.size(); j++) {
-			t += s[j];
-		}
-		if (t.empty()) {
-			break;
-		}
-		trie.add(0, t);
+	int n; std::cin >> n;
+	SA sa;
+	for (char c : s) {
+		sa.push(c);
 	}
-	int k; std::cin >> k;
-	for (int i = 0; i < k; i++) {
+	while (n--) {
 		std::string t; std::cin >> t;
-		if ((int)t.size() >= block) {
-			bool yes = false;
-			Rolling <69, int(1e9) + 7> her(t);
-			int here = her.query(0, (int)t.size() - 1);
-			for (int j = 0; j < (int)s.size(); j++) {
-				if (j + (int)t.size() - 1 >= (int)s.size()) {
-					break;
-				}
-				if (here == rol.query(j, j + (int)t.size() - 1)) {
-					yes = true;
-					break;
-				}
-			}
-			std::cout << (yes ? "YES\n" : "NO\n");
-		} else {
-			std::cout << (trie.has(0, t) ? "YES\n" : "NO\n");
-		}
+		std::cout << (sa.exists(t) ? "YES\n" : "NO\n");
 	}
-	
 }
