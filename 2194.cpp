@@ -69,7 +69,7 @@ ll rec(int l, int r) {
 	ll d = std::min(left, right);
 	std::vector <P> strp;
 	for (int i = l; i <= r; i++) {
-		if (ab(p[i].x - pmid.x) < d) {
+		if (ab(p[i].x - pmid.x) * ab(p[i].x - pmid.x) < d) {
 			strp.push_back(p[i]);
 		}
 	}
