@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-
+ 
 int main() {
 	std::ios::sync_with_stdio(0); std::cin.tie(0);
 	
@@ -14,7 +14,7 @@ int main() {
 		ans += double(i) * plus - double(i) * minus;
 	}
 	ans *= 1e6;
-	ans = llround(ans);
+	ans = roundeven(ans);
 	ans /= 1e6;
 	std::cout << std::fixed << std::setprecision(6) << ans << "\n";
 	
